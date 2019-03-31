@@ -3,6 +3,7 @@ import sys
 from pygame.locals import *
 import terrain_block
 from terrain_block import *
+import time
 
 white = (255,255,255)
 black = (0,0,0)
