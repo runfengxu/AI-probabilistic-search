@@ -56,6 +56,11 @@ def update_cell(canvas,size,result,y,x):
     canvas.create_text((size*(2*x+1)/2,size*(2*y+1)/2),text='X',fill='red',font = 'Helevetica 10 bold')
     canvas.update()
     time.sleep(0.5)
+
+def manhattan(x,y,a,b):
+    return abs(x-a)+abs(y-b)
+
+
 class Agent(object):
 
     def __init__(self,dim):
@@ -96,6 +101,39 @@ class Agent(object):
         x=point[0][0]
         y=point[1][0]
         return x,y
+
+
+    def rule1_sec4(self,a,b):
+        matrix = np.zeros((self.dim, self.dim))
+        for i in range(self.dim):
+            for j in range(self.dim):
+                p = self.belief_state[i][j]
+                matrix[i][j] = p/manhattan(i,j,a,b)
+
+        point = np.where(matrix == np.max(matrix))
+        x = point[0][0]
+        y = point[1][0]
+        return x, y
+
+    def rule2_sec4(self,a,b):
+        matrix = np.zeros((self.dim, self.dim))
+        for i in range(self.dim):
+            for j in range(self.dim):
+                p = self.belief_state[i][j]
+                tp = map[i][j]
+                if tp == 1:
+                    matrix[i][j] = 0.9 * p/manhattan(i,j,a,b)
+                elif tp == 2:
+                    matrix[i][j] = 0.7 * p/manhattan(i,j,a,b)
+                elif tp == 3:
+                    matrix[i][j] = 0.3 * p/manhattan(i,j,a,b)
+                elif tp == 4:
+                    matrix[i][j] = 0.1 * p/manhattan(i,j,a,b)
+
+        point = np.where(matrix == np.max(matrix))
+        x = point[0][0]
+        y = point[1][0]
+        return x, y
 
     def update_state(self,x,y,tp):
         falseNeg = probability_dict[tp]
