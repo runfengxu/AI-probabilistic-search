@@ -1,0 +1,213 @@
+import numpy as np
+import random
+import tkinter as tk
+import math
+import tkinter as tk
+import time
+
+
+probability_dict={1:0.1,2:0.3,3:0.7,4:0.9}
+
+def buildmap(dim):
+    nmap=np.random.random((dim,dim))
+    map=np.zeros((dim,dim))
+    for i in range(dim):
+        for j in range(dim):
+            if nmap[i][j]<0.2:
+                map[i][j]=1
+            elif nmap[i][j]<0.5:
+                map[i][j]=2
+            elif nmap[i][j]<0.8:
+                map[i][j]=3
+            else: map[i][j]=4
+
+    return map
+
+
+def generate_target(dim):
+    x = random.randint(0,dim-1)
+    y = random.randint(0,dim-1)
+    return x,y
+
+def remove_target(dim,a,b):
+    x1,y1 = random.choice([(1,0),(-1,0),(0,1),(0,-1)])
+    x = a+x1
+    y = b+y1
+    while((x<0)or(x>dim-1)or(y<0)or(y>dim-1)):
+        x1,y1= random.choice([(1,0),(-1,0),(0,1),(0,-1)])
+        x = a + x1
+        y = b + y1
+    return x,y
+
+
+def report_type(a,b,x,y,map):
+    type1 = map[a][b]
+    type2 = map[x][y]
+
+    return type1,type2
+
+
+
+class Agent(object):
+
+    def __init__(self,dim):
+        self.belief_state = np.full((dim,dim),1/(dim*dim))
+        self.dim=dim
+
+
+
+    def search_cell(self,x,y,targetx,targety,map):
+
+        p = random.random()
+        tp= map[x][y]
+        if x==targetx and y== targety:
+            if (tp==1 and p<0.9) or (tp==2 and p<0.7 )or(tp==3 and p<0.3)or(tp==4 and p<0.1):
+                return True
+        else:
+                return False
+
+
+
+
+    def dynamic_rule1(self,map,typelist=[]):
+        beliefmatrix = self.belief_state.copy()
+        for type in typelist:
+            points = np.where(map==type)
+            i=0
+            while (i<len(points[0])):
+                x=points[0][i]
+                y=points[1][i]
+                beliefmatrix[x][y]=0
+                i=i+1
+        point=np.where(beliefmatrix==np.max(beliefmatrix))
+        i=random.randint(0,len(point[0])-1)
+        x=point[0][i]
+        y=point[1][i]
+        return x,y
+    def dynamic_rule2(self,map,typelist=[]):
+        matrix=np.zeros((self.dim,self.dim))
+        for i in range(self.dim):
+            for j in range(self.dim):
+                p = self.belief_state[i][j]
+                tp=map[i][j]
+                if tp==1:
+                    matrix[i][j]=0.9*p
+                elif tp==2:
+                    matrix[i][j]=0.7*p
+                elif tp==3:
+                    matrix[i][j] = 0.3 * p
+                elif tp==4:
+                    matrix[i][j] = 0.1 * p
+
+        beliefmatrix = matrix.copy()
+        for type in typelist:
+            points = np.where(map == type)
+            i=0
+            while i<len(points[0]) :
+                x = points[0][i]
+                y = points[1][i]
+                beliefmatrix[x][y] = 0
+                i=i+1
+        point = np.where(beliefmatrix == np.max(beliefmatrix))
+        i = random.randint(0, len(point[0]) - 1)
+        x = point[0][i]
+        y = point[1][i]
+        return x, y
+
+    def rule1_sec4(self,a,b):
+        matrix = np.zeros((self.dim, self.dim))
+        for i in range(self.dim):
+            for j in range(self.dim):
+                p = self.belief_state[i][j]
+                matrix[i][j] = p/manhattan(i,j,a,b)
+
+        point = np.where(matrix == np.max(matrix))
+        x = point[0][0]
+        y = point[1][0]
+        return x, y
+
+    def rule2_sec4(self,a,b):
+        matrix = np.zeros((self.dim, self.dim))
+        for i in range(self.dim):
+            for j in range(self.dim):
+                p = self.belief_state[i][j]
+                tp = map[i][j]
+                if tp == 1:
+                    matrix[i][j] = 0.9 * p/manhattan(i,j,a,b)
+                elif tp == 2:
+                    matrix[i][j] = 0.7 * p/manhattan(i,j,a,b)
+                elif tp == 3:
+                    matrix[i][j] = 0.3 * p/manhattan(i,j,a,b)
+                elif tp == 4:
+                    matrix[i][j] = 0.1 * p/manhattan(i,j,a,b)
+
+        point = np.where(matrix == np.max(matrix))
+        x = point[0][0]
+        y = point[1][0]
+        return x, y
+
+    def update_state(self,x,y,tp):
+        falseNeg = probability_dict[tp]
+        prob=self.belief_state[x][y]
+        for i in range(self.dim):
+            for j in range(self.dim):
+                if i==x and j==y:
+                    self.belief_state[i][j]= falseNeg*prob/(1-prob+prob*falseNeg)
+
+                else:
+                    prob1 = self.belief_state[i][j]
+                    self.belief_state[i][j]= prob1/(1-prob+prob*falseNeg)
+
+    def record_state(self):
+        pass
+        # record search history
+    def show_state(self):
+        pass
+        #visualization
+
+
+
+
+
+def main():
+    dim = 50
+    l = 1
+    s = 0
+    while (l < 2):
+        map = buildmap(dim)
+        (a, b) = generate_target(dim)
+        # print(a, b)
+        # print(map[a][b])
+        Ai = Agent(dim)
+        x = random.randint(0, 49)
+        y = random.randint(0, 49)
+        result = Ai.search_cell(x, y, a, b, map)
+        tp = map[x][y]
+        print(tp)
+        Ai.update_state(x, y, tp)
+        (tx, ty) = remove_target(dim,a,b)
+        type1, type2 = report_type(a, b, tx, ty,map)
+        typelist=[1,2,3,4]
+        typelist.remove(type1)
+        typelist.remove(type2)
+        x, y = Ai.dynamic_rule1(map,typelist)
+        result = Ai.search_cell(x, y, tx, ty, map)
+        (a, b) = (tx, ty)
+        num = 1
+        while ((not result) and (num) < 10000):
+            tp = map[x][y]
+            Ai.update_state(x, y, tp)
+
+            (tx, ty) = remove_target(dim,a,b)
+            type1new,type2new = report_type(a,b,tx,ty,map)
+            typelist={1,2,3,4}-({type1new,type2new}-({type1,type2}&{type1new,type2new}))
+            x, y = Ai.dynamic_rule1(map,typelist)
+            result = Ai.search_cell(x, y, tx, ty, map)
+            (a,b)=(tx,ty)
+            num = num + 1
+        print(l)
+        l = l + 1
+        s = s + num
+    print(s / (l - 1))
+
+main()
