@@ -8,11 +8,11 @@ import time
 
 probability_dict={1:0.1,2:0.3,3:0.7,4:0.9}
 
-def buildmap():
-    nmap=np.random.random((50,50))
-    map=np.zeros((50,50))
-    for i in range(50):
-        for j in range(50):
+def buildmap(dim):
+    nmap=np.random.random((dim,dim))
+    map=np.zeros((dim,dim))
+    for i in range(dim):
+        for j in range(dim):
             if nmap[i][j]<0.2:
                 map[i][j]=1
             elif nmap[i][j]<0.5:
@@ -22,9 +22,9 @@ def buildmap():
             else: map[i][j]=4
 
     return map
-def generate_target():
-    x=random.randint(0,49)
-    y=random.randint(0,49)
+def generate_target(dim):
+    x=random.randint(0,dim-1)
+    y=random.randint(0,dim-1)
     return x,y
 
 def drawCanvas(canvas,matrix,size):
@@ -51,35 +51,57 @@ def rect(canvas,size,a,b,color='black'):
     canvas.create_rectangle((x1,y1,x2,y2),fill=color)
     canvas.update_idletasks()
 
-
-
+def update_cell(canvas,size,result,y,x):
+    time.sleep(0.5)
+    canvas.create_text((size*(2*x+1)/2,size*(2*y+1)/2),text='X',fill='red',font = 'Helevetica 10 bold')
+    canvas.update()
+    time.sleep(0.5)
 class Agent(object):
 
-    def __init__(self):
-        self.belief_state = np.full((50,50),1/2500)
-
+    def __init__(self,dim):
+        self.belief_state = np.full((dim,dim),1/(dim*dim))
+        self.dim=dim
     def search_cell(self,x,y,targetx,targety,map):
 
         p = random.random()
         tp= map[x][y]
         if x==targetx and y== targety:
             if (tp==1 and p<0.9) or (tp==2 and p<0.7 )or(tp==3 and p<0.3)or(tp==4 and p<0.1):
-                return (tp,True)
-            else:
-                return (tp,False)
+                return True
+        else:
+                return False
 
     def rule1(self):
         point=np.where(self.belief_state == np.max(self.belief_state))
+        i=random.randint(0,len(point[0])-1)
+        x=point[0][i]
+        y=point[1][i]
+        return x,y
+    def rule2(self,map):
+        matrix=np.zeros((self.dim,self.dim))
+        for i in range(self.dim):
+            for j in range(self.dim):
+                p = self.belief_state[i][j]
+                tp=map[i][j]
+                if tp==1:
+                    matrix[i][j]=0.9*p
+                elif tp==2:
+                    matrix[i][j]=0.7*p
+                elif tp==3:
+                    matrix[i][j] = 0.3 * p
+                elif tp==4:
+                    matrix[i][j] = 0.1 * p
+
+        point=np.where(matrix==np.max(matrix))
         x=point[0][0]
         y=point[1][0]
-        return x,y   #return the most likely point by rule1
-    def rule2(self):
-        return x,y   #return the most likely point by rule2
+        return x,y
+
     def update_state(self,x,y,tp):
         falseNeg = probability_dict[tp]
         prob=self.belief_state[x][y]
-        for i in range(50):
-            for j in range(50):
+        for i in range(self.dim):
+            for j in range(self.dim):
                 if i==x and j==y:
                     self.belief_state[i][j]= falseNeg*prob/(1-prob+prob*falseNeg)
 
@@ -98,37 +120,30 @@ class Agent(object):
 
 
 def main():
-
-    map = buildmap()
-    (a,b)=generate_target()
-    print(a,b)
-    Ai= Agent()
-    x = random.randint(0, 30)
-    y = random.randint(0, 30)
-    result = Ai.search_cell(x,y,a,b,map)
-    print(result)
-    num=1
-    dim = 30
-    grid = buildmap(dim)
-    height, width = (dim, dim)
-    cellsize = (int)(400 / dim)
-    master = tk.Tk()
-    master.title('map')
-    canvasGenerate = tk.Canvas(master, width=width * cellsize, height=height * cellsize)
-    canvasGenerate.grid(row=0, column=0)
-    drawCanvas(canvasGenerate, np.transpose(grid), cellsize)
-    tk.mainloop()
-    while((not result) and (num)<2000):
-        tp=map[x][y]
-        Ai.update_state(x,y,tp)
-        x,y=Ai.rule1()
+    dim = 50
+    l = 1
+    s = 0
+    while (l < 20):
+        map = buildmap(dim)
+        (a,b)=generate_target(dim)
+        print(a,b)
+        print(map[a][b])
+        Ai= Agent(dim)
+        x = random.randint(0, 49)
+        y = random.randint(0, 49)
         result = Ai.search_cell(x,y,a,b,map)
-        num=num+1
-        print(num)
+        num=1
 
-    print(x,y)
-
-    
+        while((not result) and (num)<10000):
+            tp=map[x][y]
+            Ai.update_state(x,y,tp)
+            x,y=Ai.rule2(map)
+            result = Ai.search_cell(x,y,a,b,map)
+            num=num+1
+        print(l)
+        l=l+1
+        s=s+num
+    print(s/(l-1))
 main()
 
 
