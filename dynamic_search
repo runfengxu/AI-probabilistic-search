@@ -188,8 +188,10 @@ def main():
         (tx, ty) = remove_target(dim,a,b)
         type1, type2 = report_type(a, b, tx, ty,map)
         typelist=[1,2,3,4]
-        typelist.remove(type1)
-        typelist.remove(type2)
+        se=set([type1,type2])
+        for element in se:
+            typelist.remove(element)
+
         x, y = Ai.dynamic_rule1(map,typelist)
         result = Ai.search_cell(x, y, tx, ty, map)
         (a, b) = (tx, ty)
@@ -200,7 +202,11 @@ def main():
 
             (tx, ty) = remove_target(dim,a,b)
             type1new,type2new = report_type(a,b,tx,ty,map)
-            typelist={1,2,3,4}-({type1new,type2new}-({type1,type2}&{type1new,type2new}))
+            set1 = ({type1new,type2new}-({type1,type2}&{type1new,type2new}))
+            if len(set1)==1:
+                typelist={1,2,3,4}-set1
+            else:
+                typelist = {1,2,3,4}-{type1new,type2new}
             x, y = Ai.dynamic_rule1(map,typelist)
             result = Ai.search_cell(x, y, tx, ty, map)
             (a,b)=(tx,ty)
