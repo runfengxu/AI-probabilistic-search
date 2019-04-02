@@ -23,8 +23,18 @@ def buildmap(dim):
 
     return map
 def generate_target(dim):
-    x=random.randint(0,dim-1)
-    y=random.randint(0,dim-1)
+    x = random.randint(0,dim-1)
+    y = random.randint(0,dim-1)
+    return x,y
+
+def remove_target(dim):
+    x1,y1 = random.choice([(1,0),(-1,0),(0,1),(0,-1)])
+    x = a+x1
+    y = b+y1
+    while((x<0)or(x>dim-1)or(y<0)or(y>dim-1)):
+        x1,y1= random.choice([(1,0),(-1,0),(0,1),(0,-1)])
+        x = a + x1
+        y = b + y1
     return x,y
 
 def drawCanvas(canvas,matrix,size):
@@ -66,6 +76,9 @@ class Agent(object):
     def __init__(self,dim):
         self.belief_state = np.full((dim,dim),1/(dim*dim))
         self.dim=dim
+
+
+
     def search_cell(self,x,y,targetx,targety,map):
 
         p = random.random()
@@ -161,27 +174,55 @@ def main():
     dim = 50
     l = 1
     s = 0
-    while (l < 20):
-        map = buildmap(dim)
-        (a,b)=generate_target(dim)
-        print(a,b)
-        print(map[a][b])
+    map = buildmap(dim)
+    while (l < 50):
+        point1 = np.where(map==1)
+        i = random.randint(0,len(point1[0]-1))
+        (a,b)=(point1[0][i],point1[1][i])
+        # print(a,b)
+        # print(map[a][b])
         Ai= Agent(dim)
         x = random.randint(0, 49)
         y = random.randint(0, 49)
         result = Ai.search_cell(x,y,a,b,map)
         num=1
 
-        while((not result) and (num)<10000):
+        while ((not result) and (num<10000)):
+            tp=map[x][y]
+            Ai.update_state(x,y,tp)
+            x,y=Ai.rule1()
+            result = Ai.search_cell(x,y,a,b,map)
+            num=num+1
+
+        print(l)
+        l=l+1
+        s=s+num
+    print('rule1',s/(l-1))
+
+    l=1
+    while (l < 50):
+        point1 = np.where(map==1)
+        i = random.randint(0,len(point1[0]-1))
+        (a,b)=(point1[0][i],point1[1][i])
+        # print(a,b)
+        # print(map[a][b])
+        Ai= Agent(dim)
+        x = random.randint(0, 49)
+        y = random.randint(0, 49)
+        result = Ai.search_cell(x,y,a,b,map)
+        num=1
+
+        while ((not result) and (num<10000)):
             tp=map[x][y]
             Ai.update_state(x,y,tp)
             x,y=Ai.rule2(map)
             result = Ai.search_cell(x,y,a,b,map)
             num=num+1
+
         print(l)
         l=l+1
         s=s+num
-    print(s/(l-1))
+    print('rule2',s/(l-1))
 main()
 
 
