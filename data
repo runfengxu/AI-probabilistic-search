@@ -7,8 +7,8 @@ cave: rule1 6218.142857142857  rule2 8716.959183673469
 
 3.4
 flat:  rule1  3801.143  rule2:5003.53
-hilly:  rule2  6603.6530
-forested:
+hilly:  rule1 4517.421  rule2  6603.6530
+forested: rule1 5991.736842105263
 cave:  rule1 6379.44
 
 
