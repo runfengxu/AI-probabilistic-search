@@ -9,9 +9,9 @@ cave: rule1 6218.142857142857  rule2 8716.959183673469
 flat:  rule1  3801.143  rule2:5003.53
 hilly:  rule2  6603.6530
 forested:
-cave:
+cave:  rule1 6379.44
 
 
 moving target:
 rule1:2061.71
-rule2:
+rule2:2844.16
