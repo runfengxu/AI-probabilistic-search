@@ -68,7 +68,7 @@ def update_cell(canvas,size,result,y,x):
     time.sleep(0.5)
 
 def manhattan(x,y,a,b):
-    return abs(x-a)+abs(y-b)
+    return (abs(x-a)+abs(y-b))
 
 
 class Agent(object):
@@ -121,27 +121,27 @@ class Agent(object):
         for i in range(self.dim):
             for j in range(self.dim):
                 p = self.belief_state[i][j]
-                matrix[i][j] = p/manhattan(i,j,a,b)
+                matrix[i][j] = p/(manhattan(i,j,a,b)+1)
 
         point = np.where(matrix == np.max(matrix))
         x = point[0][0]
         y = point[1][0]
         return x, y
 
-    def rule2_sec4(self,a,b):
+    def rule2_sec4(self,a,b,map):
         matrix = np.zeros((self.dim, self.dim))
         for i in range(self.dim):
             for j in range(self.dim):
                 p = self.belief_state[i][j]
                 tp = map[i][j]
                 if tp == 1:
-                    matrix[i][j] = 0.9 * p/manhattan(i,j,a,b)
+                    matrix[i][j] = 0.9 * p/(manhattan(i,j,a,b)+1)
                 elif tp == 2:
-                    matrix[i][j] = 0.7 * p/manhattan(i,j,a,b)
+                    matrix[i][j] = 0.7 * p/(manhattan(i,j,a,b)+1)
                 elif tp == 3:
-                    matrix[i][j] = 0.3 * p/manhattan(i,j,a,b)
+                    matrix[i][j] = 0.3 * p/(manhattan(i,j,a,b)+1)
                 elif tp == 4:
-                    matrix[i][j] = 0.1 * p/manhattan(i,j,a,b)
+                    matrix[i][j] = 0.1 * p/(manhattan(i,j,a,b)+1)
 
         point = np.where(matrix == np.max(matrix))
         x = point[0][0]
@@ -190,10 +190,10 @@ def main():
         while ((not result) and (num<10000)):
             tp=map[x][y]
             Ai.update_state(x,y,tp)
-            x,y=Ai.rule1()
+            x,y=Ai.rule1_sec4(x,y)
             result = Ai.search_cell(x,y,a,b,map)
             num=num+1
-
+        print(num)
         print(l)
         l=l+1
         s=s+num
@@ -215,7 +215,7 @@ def main():
         while ((not result) and (num<10000)):
             tp=map[x][y]
             Ai.update_state(x,y,tp)
-            x,y=Ai.rule2(map)
+            x,y=Ai.rule2_sec4(x,y,map)
             result = Ai.search_cell(x,y,a,b,map)
             num=num+1
 
